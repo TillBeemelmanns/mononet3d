@@ -2,7 +2,6 @@ import os
 import sys
 
 sys.path.insert(0, './')
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 import toml
 import tensorflow as tf
@@ -14,7 +13,6 @@ from utils import helpers
 from utils.dataset import load_dataset
 
 tf.random.set_seed(42)
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
 def train():
@@ -26,7 +24,7 @@ def train():
         print('[info] pretrained weighted loaded from : {}'.format(cfg['std']['pretrain']))
 
     train_ds = load_dataset(cfg['std']['train_file'], cfg)
-    val_ds = load_dataset(cfg['std']['val_file'], cfg)
+    val_ds = load_dataset(cfg['std']['val_file'], cfg, repeat=False)
 
     callbacks = [		
 		keras.callbacks.TensorBoard(
@@ -47,15 +45,14 @@ def train():
     model.fit(
         train_ds,
         validation_data=val_ds,
-        validation_steps=1,
-        validation_freq=1,
         callbacks=callbacks,
         epochs=cfg['model']['epochs'],
-        steps_per_epoch=cfg['std']['val_freq'],
-        verbose=0
-    )
+        steps_per_epoch=2975
+        )
 
 if __name__ == '__main__':
+    physical_devices = tf.config.experimental.list_physical_devices('GPU')
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
     try:
         cfg = toml.load(sys.argv[1])

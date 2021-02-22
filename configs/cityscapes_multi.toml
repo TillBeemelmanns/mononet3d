@@ -1,7 +1,7 @@
 [std]
 
-train_file = '../data/tfrecords/cityscapes_train.tfrecord'
-val_file = '../data/tfrecords/cityscapes_val.tfrecord'
+train_file = './data/tfrecords/cityscapes_train.tfrecord'
+val_file = './data/tfrecords/cityscapes_val.tfrecord'
 pretrain = ''
 log_code = 'cityscapes_1'
 val_freq = 10

@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from tensorflow import keras
 from tensorflow.keras import layers
-from tensorflow.keras.applications import ResNet50V2, VGG16, VGG19
+from tensorflow.keras.applications import ResNet50V2, VGG16, VGG19, MobileNetV2
 
 from utils.encoders import AlexNet
 from utils import tf_utils, losses
@@ -56,7 +56,7 @@ class MonoNet(keras.Model):
 
 		latent_dim = 512
 
-		self.img_encoder = VGG16(
+		self.img_encoder = MobileNetV2(
 			include_top=False,
 			weights='imagenet',
 			input_shape=(*self.img_size[:2], 3),
@@ -66,7 +66,7 @@ class MonoNet(keras.Model):
 		self.mininet = AlexNet(self.patch_size)
 
 		self.center_mlp = keras.Sequential([
-			keras.Input(shape=(latent_dim,)),
+			keras.Input(shape=(1280,)),
 			layers.Dense(self.n_pred*512, self.activation, self.bias, self.kernel_initializer),
 			layers.Reshape([self.n_pred, 512]),
 			layers.Dense(256, self.activation, self.bias, self.kernel_initializer),
