@@ -86,6 +86,8 @@ def create_records():
             with open(label_file) as json_file:
                 label_dict = json.load(json_file)
 
+            if len(label_dict['objects']) == 0: continue
+
             camera = box_utils.Camera(fx=label_dict['sensor']['fx'],
                                       fy=label_dict['sensor']['fy'],
                                       u0=label_dict['sensor']['u0'],
