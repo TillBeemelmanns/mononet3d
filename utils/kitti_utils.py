@@ -84,7 +84,7 @@ def extract_2d_boxes(boxes_3d, calib, img_size):
 		xy = xyz_c / xyz_c[:, 2, None]
 
 		box_2d = np.array([
-			np.min(xy[:, 0]), np.min(xy[:, 1]),
+			np.min(xy[:, 0]), np.min(xy[:, 1]),  # min x, min y, max x, max y
 			np.max(xy[:, 0]), np.max(xy[:, 1]),
 		])
 

@@ -198,7 +198,7 @@ class Box3dImageTransform(object):
                     image_T_sensor_quaternion.inverse
             )
 
-        return (self._size, center, quaternion_rot)
+        return self._size, center, quaternion_rot
 
     def _get_side_visibility(self, face_center, face_normal):
         return np.dot(face_normal, face_center) < 0

@@ -111,7 +111,7 @@ def obj_to_cam_crop(pts, images, crop_size, calib, o_img_size):
 
 	inds = tf.sort(tf.tile(tf.range(images.shape[0]), [pts.shape[1]]))
 
-	return  tf.image.crop_and_resize(images, boxes, inds, [*crop_size[:2]])
+	return tf.image.crop_and_resize(images, boxes, inds, [*crop_size[:2]])
 
 
 def oaaa_to_aabb(pts):

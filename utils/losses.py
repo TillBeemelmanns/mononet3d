@@ -5,20 +5,20 @@ from utils import tf_utils
 
 
 @tf.custom_gradient
-def attr_mse_loss(label, pred, dists, idx, thresh):
+def attr_mse_loss(label, pred_attr, dists, idx, thresh):
 
 	def grad(dy, variables=None, *args):
 		return None, grads, None, None, None
 
-	mask = tf.cast(tf.where(dists <= thresh, tf.ones_like(pred), tf.zeros_like(pred)), tf.bool)
-	
+	mask = tf.cast(tf.where(dists <= thresh, tf.ones_like(pred_attr), tf.zeros_like(pred_attr)), tf.bool)
+
 	label = tf.gather_nd(label, idx, batch_dims=1)
 
 	with tf.GradientTape() as t:
-		t.watch([pred])
-		loss = keras.losses.Huber()(label, pred)
+		t.watch([pred_attr])
+		loss = keras.losses.Huber()(label, pred_attr)
 
-	grads = t.gradient(loss, pred)
+	grads = t.gradient(loss, pred_attr)
 	grads = tf.where(mask, grads, tf.zeros_like(grads))
 
 	return loss, grad
@@ -30,7 +30,7 @@ def xe_loss(label, pred, dist, idx, thresh=2, n_classes=9):
 	clf = tf.where(dist <= thresh, clf, tf.cast(tf.fill(clf.shape, n_classes-1), tf.int64))
 	clf = tf.squeeze(clf, -1)
 
-	weights = tf.where(clf==n_classes-1, 0.2, 0.8)
+	weights = tf.where(clf == n_classes-1, 0.2, 0.8)
 
 	return keras.losses.SparseCategoricalCrossentropy()(clf, pred, sample_weight=weights)
 
