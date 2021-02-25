@@ -54,7 +54,7 @@ CLASS_MAP = {
 def create_records():
     max_objects = cfg['max_objects']
 
-    for dataset in cfg['datasets']:
+    for dataset, dataset_out in zip(cfg['datasets'], cfg['datasets_out']):
 
         img_dir = os.path.join(cfg['in_dir'], 'leftImg8bit', dataset)
         label_dir = os.path.join(cfg['in_dir'], 'gtBbox3d', dataset)
@@ -69,7 +69,7 @@ def create_records():
         bar = helpers.progbar(n_scenes)
         bar.start()
 
-        with tf.io.TFRecordWriter(cfg['out_train']) as train_writer, tf.io.TFRecordWriter(cfg['out_val']) as val_writer:
+        with tf.io.TFRecordWriter(dataset_out) as writer:
 
             for scene_id, (img_file, label_file) in enumerate(zip(img_files, label_files)):
 
@@ -172,18 +172,15 @@ def create_records():
 
                 tf_example = create_example(img, scan, label)
 
-                if dataset == 'train':
-                    train_writer.write(tf_example.SerializeToString())
-                elif dataset == 'val':
-                    val_writer.write(tf_example.SerializeToString())
+                writer.write(tf_example.SerializeToString())
+
 
 
 if __name__ == '__main__':
     cfg = {
         'in_dir': '../data',
-        'dataset': ['train', 'val'],
-        'out_train': '../data/tfrecords/cityscapes_train.tfrecord',
-        'out_val': '../data/tfrecords/cityscapes_val.tfrecord',
+        'datasets': ['train', 'val'],
+        'datasets_out': ['./data/tfrecords/cityscapes_train.tfrecord', './data/tfrecords/cityscapes_val.tfrecord'],
         'n_scenes': -1,
         'img_size': (1024, 2048),
         'max_objects': 22,
