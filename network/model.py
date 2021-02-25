@@ -109,9 +109,7 @@ class MonoNet(keras.Model):
 		loss_s, dists, idx = losses.chamfer_loss(label['c_3d'], pred_c)
 		loss_attr = losses.attr_mse_loss(label['attr'], pred_attr, dists, idx, self.clf_dist)
 
-		if self.optimizer.iterations > 100:
-			print(label['clf'])
-			print(pred_clf)
+		if self.optimizer.iterations > 500:
 			loss_clf = losses.xe_loss(label['clf'], pred_clf, dists, idx, self.clf_dist, self.n_classes)
 		else:
 			loss_clf = 0.
