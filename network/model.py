@@ -2,9 +2,9 @@ import tensorflow as tf
 
 from tensorflow import keras
 from tensorflow.keras import layers
-from tensorflow.keras.applications import ResNet50V2, VGG16, VGG19, MobileNetV2
+from tensorflow.keras.applications import ResNet50V2, VGG16, VGG19, MobileNetV2, MobileNetV3Small, MobileNetV3Large
 
-from utils.encoders import AlexNet
+from utils.encoders import small_resnet
 from utils import tf_utils, losses
 from utils.halton import halton_seq
 
@@ -17,7 +17,6 @@ import pyvista as pv
 
 
 class MonoNet(keras.Model):
-
 
 	def __init__(self, cfg):
 		super(MonoNet, self).__init__()
@@ -39,7 +38,6 @@ class MonoNet(keras.Model):
 
 		self.define_network()
 
-
 	def compile(self, s_optimizer, m_optimizer, eager=False):
 		super(MonoNet, self).compile(run_eagerly=eager)
 
@@ -51,27 +49,25 @@ class MonoNet(keras.Model):
 		self.train_metrics = [keras.metrics.Mean(name=m) for m in metrics]
 		self.val_metrics = [keras.metrics.Mean(name=m) for m in metrics[:4]]
 
-
 	def define_network(self):
-
 		latent_dim = 512
 
-		self.img_encoder = MobileNetV2(
+		self.img_encoder = MobileNetV3Small(
 			include_top=False,
 			weights='imagenet',
-			input_shape=(*self.img_size[:2], 3),
+			input_shape=(1024, 2048, 3),
 			pooling='max'
 		)
 
-		self.mininet = AlexNet(self.patch_size)
+		self.mininet = small_resnet(self.patch_size)
 
 		self.center_mlp = keras.Sequential([
-			keras.Input(shape=(1280,)),
-			layers.Dense(self.n_pred*512, self.activation, self.bias, self.kernel_initializer),
-			layers.Reshape([self.n_pred, 512]),
-			layers.Dense(256, self.activation, self.bias, self.kernel_initializer),
+			keras.Input(shape=(1024,)),
+			layers.Dense(self.n_pred*128, self.activation, self.bias, self.kernel_initializer),
+			layers.Reshape([self.n_pred, 128]),
+			layers.Dense(128, self.activation, self.bias, self.kernel_initializer),
 			layers.Dense(3, None, self.bias, self.kernel_initializer),
-			layers.Lambda(lambda x : x + self.halton_offset)
+			layers.Lambda(lambda x: x + self.halton_offset)
 		], name='center_mlp')
 
 		self.attr_mlp = keras.Sequential([
@@ -88,16 +84,13 @@ class MonoNet(keras.Model):
 			layers.Dense(self.n_classes, tf.nn.softmax, self.bias, self.kernel_initializer)
 		], name='clf_mlp')
 
-
 	def update_metrics(self, updates, set):
-
 		metrics = self.train_metrics if set == 'train' else self.val_metrics
 		[m.update_state([x]) for m, x in zip(metrics, updates)]
-		
 
 	def forward_pass(self, input, calib, o_img_size):
-
-		scene_code = self.img_encoder(input)
+		scaled_input = layers.experimental.preprocessing.Resizing(1024, 2048)(input)
+		scene_code = self.img_encoder(scaled_input)
 
 		c_3d = self.center_mlp(scene_code)
 
@@ -112,13 +105,13 @@ class MonoNet(keras.Model):
 
 		return c_3d, attr, clf
 
-
 	def supervised_loss(self, label, pred_c, pred_attr, pred_clf):
-
 		loss_s, dists, idx = losses.chamfer_loss(label['c_3d'], pred_c)
 		loss_attr = losses.attr_mse_loss(label['attr'], pred_attr, dists, idx, self.clf_dist)
 
 		if self.optimizer.iterations > 100:
+			print(label['clf'])
+			print(pred_clf)
 			loss_clf = losses.xe_loss(label['clf'], pred_clf, dists, idx, self.clf_dist, self.n_classes)
 		else:
 			loss_clf = 0.
@@ -127,18 +120,13 @@ class MonoNet(keras.Model):
 
 		return loss_s, loss_m, loss_attr, loss_clf
 
-
 	def train_step(self, input):
-
 		label = input[-1]
 		calib = input[0]['calib']
 
 		with tf.GradientTape(persistent=True) as tape:
-
 			pred_c, pred_attr, pred_clf = self.forward_pass(input[0]['img'], calib['calib'], calib['img_orig'])
-
-			loss_s, loss_m, loss_attr, loss_clf = self.supervised_loss(
-				label, pred_c, pred_attr, pred_clf)
+			loss_s, loss_m, loss_attr, loss_clf = self.supervised_loss(label, pred_c, pred_attr, pred_clf)
 
 		# Update scene net
 		train_vars = self.img_encoder.trainable_variables + self.center_mlp.trainable_variables
@@ -153,12 +141,10 @@ class MonoNet(keras.Model):
 		# Update metrics
 		updates = [loss_s+loss_m, loss_s, loss_attr, loss_clf]
 		self.update_metrics(updates, 'train')
-			
+
 		return {m.name: m.result() for m in self.train_metrics}
 
-
 	def test_step(self, input):
-
 		label = input[-1]
 		calib = input[0]['calib']
 
@@ -171,7 +157,5 @@ class MonoNet(keras.Model):
 
 		return {m.name: m.result() for m in self.val_metrics}
 
-
-	def call(self, input):
-
+	def call(self, input, training=None, mask=None):
 		return self.forward_pass(input[0], input[1], input[2])

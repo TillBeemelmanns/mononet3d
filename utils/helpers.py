@@ -47,7 +47,7 @@ def colormap(n_classes):
 
 def dump_config(cfg):
 
-	save_dir = os.path.join('./logs/{}'.format(cfg['std']['log_code']))
+	save_dir = os.path.join('/src/logs/{}'.format(cfg['std']['log_code']))
 	if not os.path.isdir(save_dir): os.makedirs(save_dir)
 	f = open(os.path.join(save_dir, 'config.toml'), "w")
 	s = toml.dumps(cfg)

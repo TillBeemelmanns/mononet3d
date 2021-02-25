@@ -36,18 +36,18 @@ def create_example(img, scan, label):
 
 CLASS_MAP = {
     'car': 0,
-    'truck': 1,
-    'bus': 2,
-    'on rails': 3,
-    'train': 3,
-    'motorcycle': 4,
-    'bicycle': 5,
-    'caravan': 6,
-    'trailer': 7,
 
-    'dynamic': 8,
-    'tunnel': 8,
-    'ignore': 8
+    'truck': 1,
+    'bus': 1,
+    'on rails': 1,
+    'train': 1,
+    'motorcycle': 1,
+    'bicycle': 1,
+    'caravan': 1,
+    'trailer': 1,
+    'dynamic': 1,
+    'tunnel': 1,
+    'ignore': 1
 }
 
 
@@ -135,6 +135,16 @@ def create_records():
 
                 for idx_vertice, loc in enumerate(bbox.loc):
                     label['bbox_3d'][idx, idx_vertice, :] = vertices[loc]
+                """
+                    print(np.concatenate([vertices[loc], [1]], axis=0))
+
+                    center = np.matmul(K_matrix, np.concatenate([vertices[loc], [1]]))
+                    center = center[:2] / center[2]
+
+                    img_arr[int(center[1]), int(center[0]), :] = (255, 255, 255)
+                cv.imshow("View0", img_arr)
+                cv.waitKey(0)
+                exit()"""
 
                 bbox_2d_xy_hw = obj['2d']['amodal']
 
@@ -154,8 +164,8 @@ def create_records():
                 label['bbox_2d'][idx, :] = bbox_2d_xy_xy
 
                 yaw, pitch, roll = pyquaternion.Quaternion(quaternion).yaw_pitch_roll
-                label['ri'][idx, :] = np.cos(pitch)
-                label['rj'][idx, :] = np.sin(pitch)
+                label['ri'][idx, 0] = np.cos(pitch)
+                label['rj'][idx, 0] = np.sin(pitch)
 
             scan = np.ones((5, 3))  # dummy points
 
@@ -171,10 +181,10 @@ def create_records():
 
 if __name__ == '__main__':
     cfg = {
-        'in_dir': './data',
+        'in_dir': '../data',
         'dataset': 'train',
-        'out_train': './data/tfrecords/cityscapes_train.tfrecord',
-        'out_val': './data/tfrecords/cityscapes_val.tfrecord',
+        'out_train': '../data/tfrecords/cityscapes_train.tfrecord',
+        'out_val': '../data/tfrecords/cityscapes_val.tfrecord',
         'n_scenes': -1,
         'img_size': (1024, 2048),
         'max_objects': 22,
