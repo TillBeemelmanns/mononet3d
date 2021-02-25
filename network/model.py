@@ -63,9 +63,9 @@ class MonoNet(keras.Model):
 
 		self.center_mlp = keras.Sequential([
 			keras.Input(shape=(1024,)),
-			layers.Dense(self.n_pred*128, self.activation, self.bias, self.kernel_initializer),
-			layers.Reshape([self.n_pred, 128]),
-			layers.Dense(128, self.activation, self.bias, self.kernel_initializer),
+			layers.Dense(self.n_pred*512, self.activation, self.bias, self.kernel_initializer),
+			layers.Reshape([self.n_pred, 512]),
+			layers.Dense(256, self.activation, self.bias, self.kernel_initializer),
 			layers.Dense(3, None, self.bias, self.kernel_initializer),
 			layers.Lambda(lambda x: x + self.halton_offset)
 		], name='center_mlp')
