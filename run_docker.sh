@@ -8,4 +8,4 @@ docker run \
 -it \
 -u $(id -u):$(id -g) \
 mononet_image \
-python /src/network/train.py /src/configs/cityscapes_multi.toml
+python /src/network/train.py /src/configs/cityscapes_single.toml

@@ -121,9 +121,6 @@ def create_records():
 
                 _, center_3d_cam, quaternion = bbox.get_parameters(coordinate_system=box_utils.CRS_S)
 
-                # skip ignore class
-                if CLASS_MAP[obj['label']] == 8:
-                    continue
 
                 label['clf'][idx, 0] = CLASS_MAP[obj['label']]
                 label['c_3d'][idx, :] = center_3d_cam

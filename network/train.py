@@ -46,7 +46,7 @@ def train():
         validation_data=val_ds,
         callbacks=callbacks,
         epochs=cfg['model']['epochs'],
-        steps_per_epoch=2975
+        steps_per_epoch=2975//cfg['model']['batch_size']
     )
 
 if __name__ == '__main__':
