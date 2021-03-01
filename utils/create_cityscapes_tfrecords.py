@@ -107,7 +107,7 @@ def create_records():
                 label['calib'] = K_matrix
                 label['orig'] = np.array(orig_img_size).astype(np.float32)
 
-                label['clf'] = np.ones((max_objects, 1)) * 8
+                label['clf'] = np.ones((max_objects, 1)) * 1
                 label['c_3d'] = np.zeros((max_objects, 3))
                 label['extent'] = np.zeros((max_objects, 3))
                 label['bbox_3d'] = np.zeros((max_objects, 8, 3))
@@ -178,7 +178,7 @@ def create_records():
 
 if __name__ == '__main__':
     cfg = {
-        'in_dir': '../data',
+        'in_dir': './data',
         'datasets': ['train', 'val'],
         'datasets_out': ['./data/tfrecords/cityscapes_train.tfrecord', './data/tfrecords/cityscapes_val.tfrecord'],
         'n_scenes': -1,
