@@ -30,7 +30,7 @@ def xe_loss(label, pred, dist, idx, thresh=2, n_classes=9):
 	clf = tf.where(dist <= thresh, clf, tf.cast(tf.fill(clf.shape, n_classes-1), tf.int64))
 	clf = tf.squeeze(clf, -1)
 
-	weights = tf.where(clf == n_classes-1, 0.2, 0.8)
+	weights = tf.where(clf == n_classes-1, 0.1, 0.9)
 
 	return keras.losses.SparseCategoricalCrossentropy()(clf, pred, sample_weight=weights)
 
