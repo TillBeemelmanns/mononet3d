@@ -9,7 +9,7 @@ max_labels = 22
 
 [model]
 
-epochs = 1000000
+epochs = 50
 batch_size = 2
 lr = 1e-4
 n_classes = 2
@@ -18,6 +18,6 @@ img_size = [1024, 2048, 3]
 n_pred = 25
 kernel_initializer = 'glorot_uniform'
 bias = true
-patch_size = [512, 512, 3]
+patch_size = [400, 400, 3]
 clf_dist = 2.5
 halton = {x=[-85.39, 101.90], y=[-23.60, 2.8], z=[2.2, 383.0]}

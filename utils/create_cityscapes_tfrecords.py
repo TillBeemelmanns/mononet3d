@@ -180,7 +180,7 @@ if __name__ == '__main__':
     cfg = {
         'in_dir': './data',
         'datasets': ['train', 'val'],
-        'datasets_out': ['./data/tfrecords/cityscapes_train.tfrecord', './data/tfrecords/cityscapes_val.tfrecord'],
+        'datasets_out': ['../data/tfrecords/cityscapes_train.tfrecord', '../data/tfrecords/cityscapes_val.tfrecord'],
         'n_scenes': -1,
         'img_size': (1024, 2048),
         'max_objects': 22,
