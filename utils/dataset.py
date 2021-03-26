@@ -66,7 +66,7 @@ def load_dataset(in_file, cfg, repeat=True):
     dataset = dataset.shuffle(shuffle_buffer)
     dataset = dataset.map(_extract_fn, num_parallel_calls=tf.data.AUTOTUNE)
     dataset = dataset.map(_preprocess_fn, num_parallel_calls=tf.data.AUTOTUNE)
-    dataset = dataset.batch(batch_size, drop_remainder=True).prefetch(tf.data.AUTOTUNE)
+    dataset = dataset.batch(batch_size, drop_remainder=False).prefetch(tf.data.AUTOTUNE)
 
     if repeat:
         dataset = dataset.repeat()
