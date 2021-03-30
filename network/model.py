@@ -2,18 +2,11 @@ import tensorflow as tf
 
 from tensorflow import keras
 from tensorflow.keras import layers
-from tensorflow.keras.applications import ResNet50V2, VGG16, VGG19, MobileNetV2, MobileNetV3Small, MobileNetV3Large
+from tensorflow.keras.applications import ResNet50V2, VGG16, VGG19
 
-from utils.encoders import small_resnet
+from utils.encoders import AlexNet, small_resnet
 from utils import tf_utils, losses
 from utils.halton import halton_seq
-
-import time
-import cv2 as cv
-import numpy as np
-import pylab as plt
-
-import pyvista as pv
 
 
 class MonoNet(keras.Model):
@@ -38,6 +31,7 @@ class MonoNet(keras.Model):
 
 		self.define_network()
 
+
 	def compile(self, s_optimizer, m_optimizer, eager=False):
 		super(MonoNet, self).compile(run_eagerly=eager)
 
@@ -52,22 +46,22 @@ class MonoNet(keras.Model):
 	def define_network(self):
 		latent_dim = 512
 
-		self.img_encoder = MobileNetV3Small(
+		self.img_encoder = VGG16(
 			include_top=False,
 			weights='imagenet',
-			input_shape=(1024, 2048, 3),
+			input_shape=[self.img_size[0]//2, self.img_size[1]//2, self.img_size[2]],
 			pooling='max'
 		)
 
 		self.mininet = small_resnet(self.patch_size)
 
 		self.center_mlp = keras.Sequential([
-			keras.Input(shape=(1024,)),
+			keras.Input(shape=(latent_dim,)),
 			layers.Dense(self.n_pred*512, self.activation, self.bias, self.kernel_initializer),
 			layers.Reshape([self.n_pred, 512]),
 			layers.Dense(256, self.activation, self.bias, self.kernel_initializer),
 			layers.Dense(3, None, self.bias, self.kernel_initializer),
-			layers.Lambda(lambda x: x + self.halton_offset)
+			# layers.Lambda(lambda x: x + self.halton_offset)
 		], name='center_mlp')
 
 		self.attr_mlp = keras.Sequential([
@@ -89,8 +83,8 @@ class MonoNet(keras.Model):
 		[m.update_state([x]) for m, x in zip(metrics, updates)]
 
 	def forward_pass(self, input, calib, o_img_size):
-		scaled_input = layers.experimental.preprocessing.Resizing(1024, 2048)(input)
-		scene_code = self.img_encoder(scaled_input)
+		x = layers.experimental.preprocessing.Resizing(1024//2, 2048//2)(input)
+		scene_code = self.img_encoder(x)
 
 		c_3d = self.center_mlp(scene_code)
 
@@ -109,7 +103,7 @@ class MonoNet(keras.Model):
 		loss_s, dists, idx = losses.chamfer_loss(label['c_3d'], pred_c)
 		loss_attr = losses.attr_mse_loss(label['attr'], pred_attr, dists, idx, self.clf_dist)
 
-		if self.optimizer.iterations > 500:
+		if self.optimizer.iterations > 100:
 			loss_clf = losses.xe_loss(label['clf'], pred_clf, dists, idx, self.clf_dist, self.n_classes)
 		else:
 			loss_clf = 0.
