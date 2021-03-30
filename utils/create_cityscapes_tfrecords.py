@@ -1,8 +1,7 @@
 import os
 import sys
 
-sys.path.insert(0, './')
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+sys.path.append("/src")
 
 import glob
 import cv2 as cv
@@ -107,7 +106,7 @@ def create_records():
                 label['calib'] = K_matrix
                 label['orig'] = np.array(orig_img_size).astype(np.float32)
 
-                label['clf'] = np.ones((max_objects, 1)) * 1
+                label['clf'] = np.ones((max_objects, 1)) * 8
                 label['c_3d'] = np.zeros((max_objects, 3))
                 label['extent'] = np.zeros((max_objects, 3))
                 label['bbox_3d'] = np.zeros((max_objects, 8, 3))
@@ -122,7 +121,6 @@ def create_records():
                                         size=obj['3d']['dimensions'])
 
                     _, center_3d_cam, quaternion = bbox.get_parameters(coordinate_system=box_utils.CRS_S)
-
 
                     label['clf'][idx, 0] = CLASS_MAP[obj['label']]
                     label['c_3d'][idx, :] = center_3d_cam
@@ -178,9 +176,9 @@ def create_records():
 
 if __name__ == '__main__':
     cfg = {
-        'in_dir': './data',
+        'in_dir': '/cityscapes',
         'datasets': ['train', 'val'],
-        'datasets_out': ['../data/tfrecords/cityscapes_train.tfrecord', '../data/tfrecords/cityscapes_val.tfrecord'],
+        'datasets_out': ['/tfrecords/cityscapes_train.tfrecord', '/tfrecords/cityscapes_val.tfrecord'],
         'n_scenes': -1,
         'img_size': (1024, 2048),
         'max_objects': 22,
